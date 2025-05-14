@@ -218,6 +218,8 @@ void WorldSession::HandleSendMail(WorldPacket& recv_data)
     
     pl->ModifyMoney(-int32(reqmoney));
 
+    bool needItemDelay = false;
+
     MailDraft draft(subject, body);
 
     if (itemGuid || money > 0)
@@ -245,6 +247,9 @@ void WorldSession::HandleSendMail(WorldPacket& recv_data)
             CharacterDatabase.CommitTransaction();
 
             draft.AddItem(item);
+
+            // if item send to character at another account, then apply item delivery delay
+            needItemDelay = pl->GetSession()->GetAccountId() != rc_account;
         }
 
         if (money > 0 &&  GetSecurity() > SEC_PLAYER && sWorld.getConfig(CONFIG_BOOL_GM_LOG_TRADE))
@@ -255,7 +260,7 @@ void WorldSession::HandleSendMail(WorldPacket& recv_data)
     }
 
     // Delivery delay is always applied, even if we're sending mails to our own characters
-    uint32 deliver_delay = sWorld.getConfig(CONFIG_UINT32_MAIL_DELIVERY_DELAY);
+    uint32 deliver_delay = needItemDelay ? sWorld.getConfig(CONFIG_UINT32_MAIL_DELIVERY_DELAY) : 0;
 
     // will delete item or place to receiver mail list
     draft
