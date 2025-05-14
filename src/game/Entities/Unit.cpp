@@ -8295,6 +8295,22 @@ void Unit::SetVisibility(UnitVisibility x)
         UpdateVisibilityAndView();
 }
 
+float Unit::GetMountedBaseSpeedFromSkill() const
+{
+    if (!IsPlayer())
+        return 1.0f;
+
+    const Player* player = (const Player*)this;
+    uint32 skill = player->GetSkillValue(SKILL_RIDING);
+
+    if (skill < 75)
+        return 1.0f;
+    if (skill < 150)
+        return 1.60f;
+
+    return 2.00f;
+}
+
 void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
 {
     int32 main_speed_mod  = 0;
@@ -8309,9 +8325,17 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
         {
             if (IsMounted()) // Use on mount auras
             {
-                main_speed_mod  = GetMaxPositiveAuraModifier(SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED);
-                stack_bonus     = GetTotalAuraMultiplier(SPELL_AURA_MOD_MOUNTED_SPEED_ALWAYS);
-                non_stack_bonus = (100.0f + GetMaxPositiveAuraModifier(SPELL_AURA_MOD_MOUNTED_SPEED_NOT_STACK)) / 100.0f;
+                if (IsPlayer()) {
+                    // Base mounted speed on riding skill instead of mount aura speed modifier
+                    float base = GetMountedBaseSpeedFromSkill();
+                    stack_bonus = base * GetTotalAuraMultiplier(SPELL_AURA_MOD_MOUNTED_SPEED_ALWAYS);
+                    non_stack_bonus = (100.0f + GetMaxPositiveAuraModifier(SPELL_AURA_MOD_MOUNTED_SPEED_NOT_STACK)) / 100.0f;
+                }
+                else {
+                    main_speed_mod = GetMaxPositiveAuraModifier(SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED);
+                    stack_bonus = GetTotalAuraMultiplier(SPELL_AURA_MOD_MOUNTED_SPEED_ALWAYS);
+                    non_stack_bonus = (100.0f + GetMaxPositiveAuraModifier(SPELL_AURA_MOD_MOUNTED_SPEED_NOT_STACK)) / 100.0f;
+                }
             }
             else
             {

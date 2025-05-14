@@ -2215,6 +2215,7 @@ class Unit : public WorldObject
         void CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMask, DamageEffectType damagetype, const uint32 damage, uint32* absorb, int32* resist, bool canReflect = false, bool canResist = true, bool binary = false);
         void CalculateAbsorbResistBlock(Unit* caster, SpellNonMeleeDamage* spellDamageInfo, SpellEntry const* spellInfo, WeaponAttackType attType = BASE_ATTACK);
 
+        float GetMountedBaseSpeedFromSkill() const;
         void  UpdateSpeed(UnitMoveType mtype, bool forced, float ratio = 1.0f);
         float GetSpeedInMotion() const;
         float GetSpeed(UnitMoveType mtype) const;
