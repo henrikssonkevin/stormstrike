@@ -8640,6 +8640,29 @@ void Unit::AddThreat(Unit* pVictim, float threat /*= 0.0f*/, bool crit /*= false
     if (threatSpell && threatSpell->HasAttribute(SPELL_ATTR_EX4_NO_HARMFUL_THREAT))
         return;
 
+    if (pVictim && pVictim->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player* warlock = static_cast<Player*>(pVictim);
+
+        if (warlock->getClass() == CLASS_WARLOCK && warlock->HasAura(25228))
+        {
+            if (Pet* demon = warlock->GetPet())
+            {
+                if (CanHaveThreatList() &&
+                    getThreatManager().getThreat(demon) > 0.0f)
+                {
+                    float demonPortion = threat * 0.30f;
+                    float warlockPortion = threat - demonPortion;
+
+                    getThreatManager().addThreat(demon, demonPortion,
+                        crit, schoolMask, threatSpell);
+
+                    threat = warlockPortion;
+                }
+            }
+        }
+    }
+
     // Only mobs can manage threat lists
     if (CanHaveThreatList())
         getThreatManager().addThreat(pVictim, threat, crit, schoolMask, threatSpell);
