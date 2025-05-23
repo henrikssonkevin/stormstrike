@@ -4927,7 +4927,6 @@ float Player::GetDodgeFromAgility(float amount) const
     {
         case CLASS_PALADIN:
         case CLASS_SHAMAN:
-        case CLASS_DRUID:
             valLevel1 = 4.6f;
             valLevel60 = 20.0f;
             break;
@@ -4935,6 +4934,7 @@ float Player::GetDodgeFromAgility(float amount) const
             valLevel1 = 12.9f;
             valLevel60 = 20.0f;
             break;
+        case CLASS_DRUID:
         case CLASS_ROGUE:
             valLevel1 = 1.1f;
             valLevel60 = 14.5f;
