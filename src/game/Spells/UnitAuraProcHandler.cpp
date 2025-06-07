@@ -1183,6 +1183,18 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     }
                     break;
                 }
+                // Spiritual Attunement
+                case 33776:
+                {
+                    // Only if healed by another unit, not spells like First Aid and only when actual heal occured
+                    if (this == pVictim || spellInfo->HasAttribute(SPELL_ATTR_IS_ABILITY) || data.healthGain == 0)
+                        return SPELL_AURA_PROC_FAILED;
+
+                    basepoints[0] = triggerAmount * data.healthGain / 100;
+                    target = this;
+                    triggered_spell_id = 31786;
+                    break;
+                }
             }
             break;
         }
