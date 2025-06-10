@@ -1240,6 +1240,53 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     triggered_spell_id = 28850;
                     break;
                 }
+                // Lightning Overload
+                case 30681:
+                {
+                    if (!spellInfo || GetTypeId() != TYPEID_PLAYER || !pVictim)
+                        return SPELL_AURA_PROC_FAILED;
+
+                    // custom cooldown processing case
+                    if (cooldown && !triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
+                        return SPELL_AURA_PROC_FAILED;
+
+                    uint32 spellId;
+                    // Every Lightning Bolt and Chain Lightning spell have duplicate vs half damage and zero cost
+                    switch (spellInfo->Id)
+                    {
+                    // Lightning Bolt
+                    case   403: spellId = 45284; break;     // Rank  1
+                    case   529: spellId = 45286; break;     // Rank  2
+                    case   548: spellId = 45287; break;     // Rank  3
+                    case   915: spellId = 45288; break;     // Rank  4
+                    case   943: spellId = 45289; break;     // Rank  5
+                    case  6041: spellId = 45290; break;     // Rank  6
+                    case 10391: spellId = 45291; break;     // Rank  7
+                    case 10392: spellId = 45292; break;     // Rank  8
+                    case 15207: spellId = 45293; break;     // Rank  9
+                    case 15208: spellId = 45294; break;     // Rank 10
+                    // Chain Lightning
+                    case   421: spellId = 45297; break;     // Rank  1
+                    case   930: spellId = 45298; break;     // Rank  2
+                    case  2860: spellId = 45299; break;     // Rank  3
+                    case 10605: spellId = 45300; break;     // Rank  4
+                    default:
+                        sLog.outError("Unit::HandleDummyAuraProc: non handled spell id: %u (LO)", spellInfo->Id);
+                        return SPELL_AURA_PROC_FAILED;
+                    }
+
+                    // Remove cooldown (Chain Lightning - have Category Recovery time)
+                    SpellEntry const* procSpellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                    if (!procSpellEntry)
+                    {
+                        sLog.outError("Unit::HandleDummyAuraProc: nonexistent spell id: %u (Lightning Bolt and Chain Lightning)", spellId);
+                        return SPELL_AURA_PROC_FAILED;
+                    }
+
+                    CastSpell(pVictim, procSpellEntry, TRIGGERED_OLD_TRIGGERED, castItem, triggeredByAura);
+
+                    return SPELL_AURA_PROC_OK;
+                }
             }
             break;
         }
