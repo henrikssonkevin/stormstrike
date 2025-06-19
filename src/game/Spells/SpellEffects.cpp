@@ -292,7 +292,12 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
             }
 
             case SPELLFAMILY_MAGE:
+            {
+                // Arcane Blast
+                if (m_spellInfo->SpellFamilyFlags & uint64(0x20000000))
+                    m_caster->CastSpell(m_caster, 36032, TRIGGERED_INSTANT_CAST);
                 break;
+            }
             case SPELLFAMILY_WARRIOR:
             {
                 // Bloodthirst
