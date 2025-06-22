@@ -53,6 +53,37 @@
 
 extern pEffect SpellEffects[MAX_SPELL_EFFECTS];
 
+class DelayedCastEvent : public BasicEvent
+{
+    Unit*       _caster;
+    ObjectGuid  _targetGuid;
+    uint32      _spellId;
+    uint32      _flags;
+    Aura*       _aura;
+
+    public:
+    DelayedCastEvent(Unit* caster, Unit* target, uint32 spellId, uint32 flags, Aura* aura):
+        _caster(caster),
+        _targetGuid(target->GetObjectGuid()),
+        _spellId(spellId),
+        _flags(flags),
+        _aura(aura) { }
+
+    bool Execute(uint64 /*exec*/, uint32 /*diff*/) override
+    {
+        if (!_caster || !_caster->IsInWorld())
+            return true;
+
+        Unit* target = ObjectAccessor::GetUnit(*_caster, _targetGuid);
+        if (!target || !target->IsInWorld())
+            return true;
+
+        _caster->CastSpell(target, _spellId, _flags, nullptr, _aura);
+
+        return true;
+    }
+};
+
 class PrioritizeManaUnitWraper
 {
     public:
@@ -3140,6 +3171,60 @@ SpellCastResult Spell::cast(bool skipCheck)
             // Blessing of Protection (Divine Shield, Divine Protection in generic switch case)
             if (m_spellInfo->Mechanic == MECHANIC_INVULNERABILITY && m_spellInfo->Id != 25771)
                 AddPrecastSpell(25771);                     // Forbearance
+            break;
+        }
+        case SPELLFAMILY_SHAMAN:
+        {
+            if (m_spellInfo->SpellFamilyName == SPELLFAMILY_SHAMAN && m_spellInfo->SpellFamilyFlags & uint64(0x0000000000000003))
+            {
+                if (Aura* aura = m_caster->GetDummyAura(30681)) // Has talent Lightning Overload?
+                {
+                    SpellEntry const* auraSpellInfo = aura->GetSpellProto();
+                    Unit* target = m_targets.getUnitTarget();
+
+                    if (target && roll_chance_f(auraSpellInfo->procChance)) 
+                    {
+                        SpellEntry const* overload = nullptr;
+
+                        switch (m_spellInfo->Id) // Manually trigger Lightning Overload
+                        {
+                            case 403: overload = sSpellTemplate.LookupEntry<SpellEntry>(45284); break;      // Lightning Bolt, rank 1
+                            case 529: overload = sSpellTemplate.LookupEntry<SpellEntry>(45286); break;      // Lightning Bolt, rank 2
+                            case 548: overload = sSpellTemplate.LookupEntry<SpellEntry>(45287); break;      // Lightning Bolt, rank 3
+                            case 915: overload = sSpellTemplate.LookupEntry<SpellEntry>(45288); break;      // Lightning Bolt, rank 4
+                            case 943: overload = sSpellTemplate.LookupEntry<SpellEntry>(45289); break;      // Lightning Bolt, rank 5
+                            case 6041: overload = sSpellTemplate.LookupEntry<SpellEntry>(45290); break;     // Lightning Bolt, rank 6
+                            case 10391: overload = sSpellTemplate.LookupEntry<SpellEntry>(45291); break;    // Lightning Bolt, rank 7
+                            case 10392: overload = sSpellTemplate.LookupEntry<SpellEntry>(45292); break;    // Lightning Bolt, rank 8
+                            case 15207: overload = sSpellTemplate.LookupEntry<SpellEntry>(45293); break;    // Lightning Bolt, rank 9
+                            case 15208: overload = sSpellTemplate.LookupEntry<SpellEntry>(45294); break;    // Lightning Bolt, rank 10
+                            case 421: overload = sSpellTemplate.LookupEntry<SpellEntry>(45297); break;      // Chain Lightning, rank 1
+                            case 930: overload = sSpellTemplate.LookupEntry<SpellEntry>(45298); break;      // Chain Lightning, rank 2
+                            case 2860: overload = sSpellTemplate.LookupEntry<SpellEntry>(45299); break;     // Chain Lightning, rank 3
+                            case 10605: overload = sSpellTemplate.LookupEntry<SpellEntry>(45300); break;    // Chain Lightning, rank 4
+                            default: break;
+                        }
+
+                        if (!overload)
+                            break;
+
+                        constexpr uint32 LO_DELAY_MS = 200;
+
+                        m_caster->m_events.AddEvent(
+                            new DelayedCastEvent(
+                                m_caster,
+                                target,
+                                overload->Id,
+                                TRIGGERED_OLD_TRIGGERED,
+                                aura),
+                            m_caster->m_events.CalculateTime(LO_DELAY_MS));
+
+                        break;
+                    }
+                    break;
+                }
+                break;
+            }
             break;
         }
         default:
