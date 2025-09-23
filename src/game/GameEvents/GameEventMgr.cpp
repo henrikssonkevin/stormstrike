@@ -1060,12 +1060,24 @@ void GameEventMgr::UpdateEventQuests(uint16 event_id, bool Activate)
     {
         const Quest* pQuest = sObjectMgr.GetQuestTemplate(itr);
 
-        // if (Activate)
-        //{
-        // TODO: implement way to reset quests when event begin.
-        //}
+        if (Activate)
+        {
+            std::ostringstream in;
+            for (uint32 q : m_gameEventQuests[event_id]) {
+                if (!sObjectMgr.GetQuestTemplate(q))
+                    continue;
+                if (in.tellp() > 0) in << ',';
+                in << q;
+            }
 
-        const_cast<Quest*>(pQuest)->SetQuestActiveState(Activate);
+            const std::string inStr = in.str();
+            if (inStr.empty())
+                return;
+
+            CharacterDatabase.PExecute("DELETE FROM character_queststatus WHERE quest IN (%s)", inStr.c_str());
+        }
+
+        const_cast<Quest*>(pQuest)->SetQuestActiveState(Activate); 
     }
 }
 
