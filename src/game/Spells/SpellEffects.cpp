@@ -793,6 +793,26 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 33697:                                 // Blood Fury (Shaman)
+                {
+                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        m_caster->CastSpell(m_caster, 23230, TRIGGERED_OLD_TRIGGERED);
+                        m_caster->CastSpell(m_caster, 100181, TRIGGERED_OLD_TRIGGERED);
+                    }
+
+                    return;
+                }
+                case 33702:                                 // Blood Fury (Warlock)
+                {
+                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        m_caster->CastSpell(m_caster, 23230, TRIGGERED_OLD_TRIGGERED);
+                        m_caster->CastSpell(m_caster, 100182, TRIGGERED_OLD_TRIGGERED);
+                    }
+
+                    return;
+                }
                 case 19869:                                 // Dragon Orb
                 {
                     if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER && !unitTarget->HasAura(23958))
