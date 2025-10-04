@@ -682,12 +682,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
-                case 17770:                                 // Wolfshead Helm Energy
-                {
-                    m_caster->CastSpell(m_caster, 29940, TRIGGERED_OLD_TRIGGERED, nullptr);
-
-                    return;
-                }
                 case 17950:                                 // Shadow Portal
                 {
                     if (unitTarget)
