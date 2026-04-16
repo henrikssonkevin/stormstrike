@@ -2003,14 +2003,22 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
                     target->SetPower(POWER_ENERGY, 0);
                     if (irand(1, 100) <= furorChance)
                         target->CastSpell(target, 17099, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+
+                    if (target->HasAura(17768))
+                        target->CastSpell(nullptr, 17770, TRIGGERED_OLD_TRIGGERED); // wolfshead helm energy
                 }
                 else
                 {
                     target->SetPower(POWER_RAGE, 0);
                     if (irand(1, 100) <= furorChance)
                         target->CastSpell(target, 17057, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+
+                    if (target->HasAura(17768))
+                        target->CastSpell(nullptr, 17769, TRIGGERED_OLD_TRIGGERED); // wolfshead helm rage
                 }
+
                 break;
+                
             }
             default:
                 break;
